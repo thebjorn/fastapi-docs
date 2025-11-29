@@ -9,7 +9,7 @@ from typing import Optional, Union
 class DocsConfig:
     """
     Configuration for the documentation router.
-    
+
     Attributes:
         docs_dir: Path to the directory containing markdown files.
         title: Site title displayed in the header.
@@ -27,7 +27,7 @@ class DocsConfig:
         line_numbers: If True, show line numbers in code blocks.
         mark_external_links: If True, mark external links with an icon.
     """
-    
+
     docs_dir: Union[str, Path]
     title: str = "Documentation"
     description: str = ""
@@ -43,7 +43,7 @@ class DocsConfig:
     extra_js: str = ""
     line_numbers: bool = False
     mark_external_links: bool = True
-    
+
     def __post_init__(self):
         if isinstance(self.docs_dir, str):
             self.docs_dir = Path(self.docs_dir)

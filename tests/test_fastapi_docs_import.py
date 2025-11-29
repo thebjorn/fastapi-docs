@@ -14,7 +14,7 @@ import fastapi_docs.tree
 def test_import_fastapi_docs():
     """Test that all modules are importable.
     """
-    
+
     assert fastapi_docs
     assert fastapi_docs.config
     assert fastapi_docs.models

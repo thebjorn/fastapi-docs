@@ -37,13 +37,15 @@ app.include_router(create_docs_router(config), prefix="/userdocs")
 
 @app.get("/")
 async def root():
-    """Redirect root to documentation."""
+    """Redirect root to documentation.
+    """
     return RedirectResponse(url="/userdocs")
 
 
 @app.get("/api/health")
 async def health_check():
-    """Health check endpoint."""
+    """Health check endpoint.
+    """
     return {"status": "healthy"}
 
 
