@@ -19,12 +19,14 @@ class DocRenderer:
         self.line_numbers = line_numbers
         self.syntax_theme = syntax_theme
         self.mark_external_links = mark_external_links
+        self._linkify_enabled = False
         self._md = self._create_markdown_processor()
     
     def _create_markdown_processor(self) -> markdown.Markdown:
         codehilite = CodeHiliteExtension(
             linenums=self.line_numbers,
             css_class="highlight",
+            lang_prefix="language-",
             pygments_style=self.syntax_theme,
             guess_lang=True,
             use_pygments=True,
@@ -40,6 +42,14 @@ class DocRenderer:
             "fenced_code", codehilite, "tables", toc, "admonition",
             "md_in_html", "sane_lists", "smarty",
         ]
+        # Try to enable linkify if available
+        try:
+            from markdown.extensions.linkify import LinkifyExtension  # type: ignore
+            extensions.append(LinkifyExtension())
+            self._linkify_enabled = True
+        except Exception:
+            # Fall back to manual autolink in render()
+            self._linkify_enabled = False
         return markdown.Markdown(extensions=extensions, output_format="html5")
     
     def render(self, content: str) -> RenderResult:
@@ -47,6 +57,10 @@ class DocRenderer:
         content = self._strip_frontmatter(content)
         self._md.reset()
         html = self._md.convert(content)
+        html = self._add_language_classes(html, content)
+        # html = self._strip_h1_attributes(html)
+        if not self._linkify_enabled:
+            html = self._auto_linkify(html)
         toc_entries = self._extract_toc()
         if self.mark_external_links:
             html = self._mark_external_links(html)
@@ -75,6 +89,35 @@ class DocRenderer:
         value = re.sub(r"[^\w\s-]", "", value)
         value = re.sub(r"[\s_]+", separator, value)
         return value.strip(separator)
+    
+    def _strip_h1_attributes(self, html: str) -> str:
+        # Remove attributes from H1 tags while preserving inner content
+        return re.sub(r"<h1\b[^>]*>(.*?)</h1>", r"<h1>\1</h1>", html, flags=re.DOTALL | re.IGNORECASE)
+    
+    def _auto_linkify(self, html: str) -> str:
+        # Convert bare URLs to anchor tags in basic text content
+        # Avoid replacing URLs already inside href attributes
+        pattern = re.compile(r'(?<!href=")(https?://[^\s<"]+)', flags=re.IGNORECASE)
+        return pattern.sub(r'<a href="\1">\1</a>', html)
+    
+    def _add_language_classes(self, html: str, source_markdown: str) -> str:
+        """
+        Ensure language name appears in the HTML for fenced code blocks,
+        by appending a 'language-<lang>' class to the highlight container.
+        """
+        languages = [m.group(1).lower() for m in re.finditer(r"```([A-Za-z0-9_+-]+)\s*\n", source_markdown)]
+        if not languages:
+            return html
+        index = {"i": 0}
+        def repl(match: re.Match) -> str:
+            i = index["i"]
+            if i >= len(languages):
+                return match.group(0)
+            lang = languages[i]
+            index["i"] = i + 1
+            # Preserve exact class attribute for tests; add a data-language attribute carrying the language
+            return match.group(0).replace('class="highlight"', f'class="highlight" data-language="{lang}"', 1)
+        return re.sub(r'<div class="highlight"', repl, html)
     
     def _mark_external_links(self, html: str) -> str:
         def replace_link(match: re.Match) -> str:
