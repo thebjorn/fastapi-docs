@@ -61,7 +61,7 @@ class DocRenderer:
         # html = self._strip_h1_attributes(html)
         if not self._linkify_enabled:
             html = self._auto_linkify(html)
-        toc_entries = self._extract_toc()
+        toc_entries = self._extract_reduced_toc(content)
         if self.mark_external_links:
             html = self._mark_external_links(html)
         return RenderResult(html=html, toc=toc_entries)
@@ -69,11 +69,29 @@ class DocRenderer:
     def _strip_frontmatter(self, content: str) -> str:
         return self.FRONTMATTER_PATTERN.sub("", content)
     
-    def _extract_toc(self) -> list[TocEntry]:
-        entries = []
-        if hasattr(self._md, "toc_tokens"):
-            for token in self._md.toc_tokens:
-                entries.extend(self._flatten_toc_token(token))
+    def _extract_reduced_toc(self, source_markdown: str) -> list[TocEntry]:
+        """
+        Build a compact TOC containing only the first H1 (from source),
+        and the first H2 (from markdown's toc_tokens).
+        """
+        entries: list[TocEntry] = []
+        # Extract H1 from the markdown source
+        m = re.search(r"^#\s+(.+)$", source_markdown, flags=re.MULTILINE)
+        if m:
+            h1_text = m.group(1).strip()
+            entries.append(TocEntry(text=h1_text, level=1, slug=self._slugify(h1_text)))
+        # Find first H2 from toc_tokens
+        tokens = getattr(self._md, "toc_tokens", None) or []
+        first_h2 = None
+        for t in tokens:
+            if t.get("level") == 2:
+                first_h2 = t
+                break
+        if first_h2 is None and tokens:
+            # Sometimes toc_depth excludes H1; tokens[0] may be an H2
+            first_h2 = tokens[0]
+        if first_h2 is not None and first_h2.get("level", 2) >= 2:
+            entries.append(TocEntry(text=first_h2.get("name", ""), level=first_h2.get("level", 2), slug=first_h2.get("id", "")))
         return entries
     
     def _flatten_toc_token(self, token: dict, level: int = 1) -> list[TocEntry]:

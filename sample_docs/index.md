@@ -34,7 +34,7 @@ config = DocsConfig(
     auto_refresh=True,
 )
 
-app.include_router(create_docs_router(config), prefix="/docs")
+app.include_router(create_docs_router(config), prefix="/userdocs")
 ```
 
 ## Getting Started

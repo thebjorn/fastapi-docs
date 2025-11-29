@@ -119,7 +119,7 @@
         <button class="mobile-menu-toggle" onclick="toggleSidebar()" aria-label="Toggle menu">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
         </button>
-        <a href="{{ request.url.path.rsplit('/', 1)[0] or '/' }}" class="header-logo">
+        <a href="{{ base_prefix }}" class="header-logo">
             {% if config.logo_url %}<img src="{{ config.logo_url }}" alt="{{ config.title }}">{% endif %}
             <span>{{ config.title }}</span>
         </a>
@@ -136,9 +136,9 @@
                 {% for item in nav %}
                     {% if item.children %}
                         <span class="section-title">{{ item.title }}</span>
-                        <ul>{% for child in item.children %}<li><a href="{{ child.path }}" {% if child.path == current_path %}class="active"{% endif %}>{{ child.title }}</a></li>{% endfor %}</ul>
+                        <ul>{% for child in item.children %}{% set _path = child.path[:-6] if child.path.endswith('/index') else ('' if child.path == 'index' else child.path) %}{% set _is_active = (child.path == current_path) or (child.path.endswith('/index') and child.path[:-6] == current_path) or (child.path == 'index' and (current_path == '' or current_path == 'index')) %}<li><a href="{{ base_prefix }}{{ _path }}" {% if _is_active %}class="active"{% endif %}>{{ child.title }}</a></li>{% endfor %}</ul>
                     {% else %}
-                        <ul><li><a href="{{ item.path }}" {% if item.path == current_path %}class="active"{% endif %}>{{ item.title }}</a></li></ul>
+                        {% set _ipath = item.path[:-6] if item.path.endswith('/index') else ('' if item.path == 'index' else item.path) %}{% set _is_active_top = (item.path == current_path) or (item.path.endswith('/index') and item.path[:-6] == current_path) or (item.path == 'index' and (current_path == '' or current_path == 'index')) %}<ul><li><a href="{{ base_prefix }}{{ _ipath }}" {% if _is_active_top %}class="active"{% endif %}>{{ item.title }}</a></li></ul>
                     {% endif %}
                 {% endfor %}
             </nav>
@@ -146,13 +146,13 @@
         <main class="main">
             <div class="content">
                 {% if breadcrumbs and breadcrumbs | length > 1 %}
-                <nav class="breadcrumbs">{% for crumb in breadcrumbs %}{% if not loop.last %}<a href="{{ crumb.path }}">{{ crumb.title }}</a><span>/</span>{% else %}<span>{{ crumb.title }}</span>{% endif %}{% endfor %}</nav>
+                <nav class="breadcrumbs">{% for crumb in breadcrumbs %}{% if not loop.last %}<a href="{{ base_prefix }}{{ crumb.path }}">{{ crumb.title }}</a><span>/</span>{% else %}<span>{{ crumb.title }}</span>{% endif %}{% endfor %}</nav>
                 {% endif %}
                 <article class="article">{{ content | safe }}</article>
                 {% if prev_doc or next_doc %}
                 <nav class="pagination">
-                    {% if prev_doc %}<a href="{{ prev_doc.path }}" class="prev"><span class="label">← Previous</span><span class="title">{{ prev_doc.metadata.title }}</span></a>{% endif %}
-                    {% if next_doc %}<a href="{{ next_doc.path }}" class="next"><span class="label">Next →</span><span class="title">{{ next_doc.metadata.title }}</span></a>{% endif %}
+                    {% if prev_doc %}{% set _ppath = prev_doc.path[:-6] if prev_doc.path.endswith('/index') else ('' if prev_doc.path == 'index' else prev_doc.path) %}<a href="{{ base_prefix }}{{ _ppath }}" class="prev"><span class="label">← Previous</span><span class="title">{{ prev_doc.metadata.title }}</span></a>{% endif %}
+                    {% if next_doc %}{% set _npath = next_doc.path[:-6] if next_doc.path.endswith('/index') else ('' if next_doc.path == 'index' else next_doc.path) %}<a href="{{ base_prefix }}{{ _npath }}" class="next"><span class="label">Next →</span><span class="title">{{ next_doc.metadata.title }}</span></a>{% endif %}
                 </nav>
                 {% endif %}
             </div>
@@ -180,9 +180,9 @@
                 if (query.length < 2) { searchResults.classList.remove('active'); return; }
                 debounceTimer = setTimeout(async function() {
                     try {
-                        const response = await fetch('_search?q=' + encodeURIComponent(query));
+                        const response = await fetch('{{ base_prefix }}_search?q=' + encodeURIComponent(query));
                         const results = await response.json();
-                        searchResults.innerHTML = results.length === 0 ? '<div class="search-no-results">No results found</div>' : results.map(r => '<div class="search-result"><a href="' + r.path + '"><div class="search-result-title">' + r.title + '</div><div class="search-result-snippet">' + r.snippet + '</div></a></div>').join('');
+                        searchResults.innerHTML = results.length === 0 ? '<div class="search-no-results">No results found</div>' : results.map(r => '<div class="search-result"><a href="{{ base_prefix }}' + r.path + '"><div class="search-result-title">' + r.title + '</div><div class="search-result-snippet">' + r.snippet + '</div></a></div>').join('');
                         searchResults.classList.add('active');
                     } catch (err) { console.error('Search error:', err); }
                 }, 200);

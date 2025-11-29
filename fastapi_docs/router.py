@@ -104,6 +104,10 @@ def create_docs_router(config_or_path: Union[DocsConfig, str, Path]) -> APIRoute
         prev_node, next_node = tree.get_siblings(path)
         
         template = jinja_env.get_template("document.html")
+        # Compute base prefix for building absolute links within the mounted router
+        mount_prefix = request.url.path[:-len(path)] if path else request.url.path
+        if not mount_prefix.endswith("/"):
+            mount_prefix = mount_prefix + "/"
         html = template.render(
             request=request,
             title=node.metadata.title,
@@ -115,6 +119,7 @@ def create_docs_router(config_or_path: Union[DocsConfig, str, Path]) -> APIRoute
             prev_doc=prev_node,
             next_doc=next_node,
             current_path=path,
+            base_prefix=mount_prefix,
         )
         return HTMLResponse(content=html)
     

@@ -48,6 +48,7 @@ More content.
         # Table of contents extracted from headings
         # assert len(result.toc) == 3
         assert len(result.toc) == 2
+        print("RESULT:TOC:", result.toc)
         assert result.toc[0].text == "Main Title"
         assert result.toc[0].level == 1
         assert result.toc[0].slug == "main-title"

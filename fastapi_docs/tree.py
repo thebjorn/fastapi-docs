@@ -32,11 +32,12 @@ class DocTree:
         if self.auto_refresh:
             self._check_refresh()
         path = path.strip("/")
-        if path in self._path_index:
-            return self._path_index[path]
         index_path = f"{path}/index" if path else "index"
+        # Prefer index documents for directory paths
         if index_path in self._path_index:
             return self._path_index[index_path]
+        if path in self._path_index:
+            return self._path_index[path]
         return None
     
     def get_breadcrumbs(self, path: str) -> list[Breadcrumb]:
@@ -121,24 +122,29 @@ class DocTree:
                 child_node.is_section = True
                 children.append(child_node)
         
+        # If an index exists, expose it as a child for navigation
+        if index_node:
+            self._path_index[index_node.path] = index_node
+            children.insert(0, index_node)
+        
         children.sort(key=lambda n: (n.metadata.order, n.metadata.title.lower()))
         
+        # Always create a directory node representing this folder
         if index_node:
-            dir_node = index_node
-            dir_node.children = children
-            dir_node.is_section = len(children) > 0
-            self._path_index[dir_node.path] = dir_node
+            dir_title = index_node.metadata.title
+            dir_order = index_node.metadata.order
         else:
-            dir_name = dir_path.name if url_path else "root"
-            dir_node = DocNode(
-                path=url_path,
-                source_path=None,
-                metadata=DocMetadata(title=self._filename_to_title(dir_name), order=999),
-                is_section=True,
-                children=children
-            )
-            if url_path:
-                self._path_index[url_path] = dir_node
+            dir_title = self._filename_to_title(dir_path.name if url_path else "root")
+            dir_order = 999
+        dir_node = DocNode(
+            path=url_path,
+            source_path=None,
+            metadata=DocMetadata(title=dir_title, order=dir_order),
+            is_section=True,
+            children=children
+        )
+        if url_path:
+            self._path_index[url_path] = dir_node
         return dir_node
     
     def _parse_markdown_file(self, file_path: Path, url_prefix: str) -> DocNode:
@@ -146,7 +152,7 @@ class DocTree:
         content = post.content
         fm = post.metadata
         stem = file_path.stem
-        url_path = url_prefix if stem == "index" else f"{url_prefix}/{stem}".strip("/")
+        url_path = (f"{url_prefix}/index" if stem == "index" else f"{url_prefix}/{stem}").strip("/")
         title = fm.get("title") or self._extract_h1(content) or self._filename_to_title(stem)
         metadata = DocMetadata(
             title=title,
@@ -172,7 +178,8 @@ class DocTree:
         for node in nodes:
             if node.metadata.hidden:
                 continue
-            items.append(NavItem(title=node.metadata.title, path=node.path,
+            path_for_nav = "index" if node.path == "" else node.path
+            items.append(NavItem(title=node.metadata.title, path=path_for_nav,
                                 children=self._build_nav_items(node.children)))
         return items
     
