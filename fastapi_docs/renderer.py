@@ -1,0 +1,101 @@
+"""DocRenderer: Markdown to HTML conversion with syntax highlighting."""
+
+import re
+from typing import Optional
+import markdown
+from markdown.extensions.codehilite import CodeHiliteExtension
+from markdown.extensions.toc import TocExtension
+
+from .models import RenderResult, TocEntry
+
+
+class DocRenderer:
+    """Renders markdown to HTML with syntax highlighting and TOC extraction."""
+    
+    FRONTMATTER_PATTERN = re.compile(r"^---\s*\n.*?\n---\s*\n", re.DOTALL)
+    
+    def __init__(self, line_numbers: bool = False, syntax_theme: str = "default",
+                 mark_external_links: bool = True):
+        self.line_numbers = line_numbers
+        self.syntax_theme = syntax_theme
+        self.mark_external_links = mark_external_links
+        self._md = self._create_markdown_processor()
+    
+    def _create_markdown_processor(self) -> markdown.Markdown:
+        codehilite = CodeHiliteExtension(
+            linenums=self.line_numbers,
+            css_class="highlight",
+            pygments_style=self.syntax_theme,
+            guess_lang=True,
+            use_pygments=True,
+        )
+        toc = TocExtension(
+            permalink=True,
+            permalink_class="anchor",
+            permalink_title="Link to this section",
+            slugify=self._slugify,
+            toc_depth="2-4",
+        )
+        extensions = [
+            "fenced_code", codehilite, "tables", toc, "admonition",
+            "md_in_html", "sane_lists", "smarty",
+        ]
+        return markdown.Markdown(extensions=extensions, output_format="html5")
+    
+    def render(self, content: str) -> RenderResult:
+        """Render markdown content to HTML."""
+        content = self._strip_frontmatter(content)
+        self._md.reset()
+        html = self._md.convert(content)
+        toc_entries = self._extract_toc()
+        if self.mark_external_links:
+            html = self._mark_external_links(html)
+        return RenderResult(html=html, toc=toc_entries)
+    
+    def _strip_frontmatter(self, content: str) -> str:
+        return self.FRONTMATTER_PATTERN.sub("", content)
+    
+    def _extract_toc(self) -> list[TocEntry]:
+        entries = []
+        if hasattr(self._md, "toc_tokens"):
+            for token in self._md.toc_tokens:
+                entries.extend(self._flatten_toc_token(token))
+        return entries
+    
+    def _flatten_toc_token(self, token: dict, level: int = 1) -> list[TocEntry]:
+        entries = [TocEntry(text=token.get("name", ""), 
+                           level=token.get("level", level),
+                           slug=token.get("id", ""))]
+        for child in token.get("children", []):
+            entries.extend(self._flatten_toc_token(child, level + 1))
+        return entries
+    
+    def _slugify(self, value: str, separator: str = "-") -> str:
+        value = value.lower()
+        value = re.sub(r"[^\w\s-]", "", value)
+        value = re.sub(r"[\s_]+", separator, value)
+        return value.strip(separator)
+    
+    def _mark_external_links(self, html: str) -> str:
+        def replace_link(match: re.Match) -> str:
+            href = match.group(1)
+            rest = match.group(2)
+            if href.startswith(("http://", "https://", "//")):
+                if 'class="' in rest:
+                    rest = rest.replace('class="', 'class="external ')
+                else:
+                    rest = f'class="external" {rest}'
+                if 'target=' not in rest:
+                    rest = f'target="_blank" rel="noopener noreferrer" {rest}'
+                return f'<a href="{href}" {rest}'
+            return match.group(0)
+        return re.sub(r'<a\s+href="([^"]*)"([^>]*)>', replace_link, html)
+    
+    def get_css(self) -> str:
+        """Get the CSS for syntax highlighting."""
+        try:
+            from pygments.formatters import HtmlFormatter
+            formatter = HtmlFormatter(style=self.syntax_theme)
+            return formatter.get_style_defs(".highlight")
+        except Exception:
+            return ""

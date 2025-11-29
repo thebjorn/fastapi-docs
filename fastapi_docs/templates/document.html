@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - {{ config.title }}</title>
+    {% if description %}<meta name="description" content="{{ description }}">{% endif %}
+    {% if config.favicon_url %}<link rel="icon" href="{{ config.favicon_url }}">{% endif %}
+    <style>
+        :root {
+            --color-bg: #ffffff; --color-bg-secondary: #f8f9fa; --color-bg-code: #f4f4f5;
+            --color-text: #1a1a2e; --color-text-muted: #6b7280; --color-text-light: #9ca3af;
+            --color-primary: #2563eb; --color-primary-hover: #1d4ed8;
+            --color-border: #e5e7eb; --color-border-light: #f3f4f6;
+            --sidebar-width: 280px; --content-max-width: 800px; --header-height: 60px;
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-mono: "SF Mono", Monaco, "Cascadia Code", Consolas, monospace;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05); --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --radius-sm: 4px; --radius-md: 6px; --radius-lg: 8px;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-bg: #0f0f14; --color-bg-secondary: #1a1a24; --color-bg-code: #1e1e28;
+                --color-text: #e5e5e5; --color-text-muted: #a1a1aa; --color-text-light: #71717a;
+                --color-primary: #60a5fa; --color-primary-hover: #93c5fd;
+                --color-border: #27272a; --color-border-light: #1f1f23;
+            }
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 16px; scroll-behavior: smooth; scroll-padding-top: calc(var(--header-height) + 1rem); }
+        body { font-family: var(--font-sans); font-size: 1rem; line-height: 1.7; color: var(--color-text); background: var(--color-bg); min-height: 100vh; }
+        .layout { display: flex; min-height: 100vh; }
+        .header { position: fixed; top: 0; left: 0; right: 0; height: var(--header-height); background: var(--color-bg); border-bottom: 1px solid var(--color-border); z-index: 100; display: flex; align-items: center; padding: 0 1.5rem; }
+        .header-logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: var(--color-text); font-weight: 600; font-size: 1.125rem; }
+        .header-logo img { height: 32px; width: auto; }
+        .header-search { margin-left: auto; position: relative; width: 280px; }
+        .header-search input { width: 100%; padding: 0.5rem 1rem 0.5rem 2.5rem; font-size: 0.875rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg-secondary); color: var(--color-text); outline: none; }
+        .header-search input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .header-search::before { content: ""; position: absolute; left: 0.875rem; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; background: var(--color-text-muted); mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'/%3E%3C/svg%3E") no-repeat center; }
+        .mobile-menu-toggle { display: none; background: none; border: none; padding: 0.5rem; cursor: pointer; color: var(--color-text); }
+        .sidebar { position: fixed; top: var(--header-height); left: 0; bottom: 0; width: var(--sidebar-width); background: var(--color-bg); border-right: 1px solid var(--color-border); overflow-y: auto; padding: 1.5rem 0; z-index: 50; }
+        .sidebar-nav { list-style: none; }
+        .sidebar-nav a { display: block; padding: 0.5rem 1.5rem; color: var(--color-text-muted); text-decoration: none; font-size: 0.9375rem; transition: color 0.15s, background 0.15s; }
+        .sidebar-nav a:hover { color: var(--color-text); background: var(--color-bg-secondary); }
+        .sidebar-nav a.active { color: var(--color-primary); background: rgba(37,99,235,0.05); font-weight: 500; }
+        .sidebar-nav .section-title { display: block; padding: 1rem 1.5rem 0.5rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-light); }
+        .sidebar-nav .section-title:first-child { padding-top: 0; }
+        .sidebar-nav ul { list-style: none; }
+        .sidebar-nav ul ul a { padding-left: 2.5rem; font-size: 0.875rem; }
+        .main { flex: 1; margin-left: var(--sidebar-width); margin-top: var(--header-height); min-height: calc(100vh - var(--header-height)); display: flex; flex-direction: column; }
+        .content { flex: 1; max-width: var(--content-max-width); padding: 2rem 3rem; margin: 0 auto; width: 100%; }
+        .breadcrumbs { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; font-size: 0.875rem; color: var(--color-text-muted); }
+        .breadcrumbs a { color: var(--color-text-muted); text-decoration: none; }
+        .breadcrumbs a:hover { color: var(--color-primary); }
+        .article h1 { font-size: 2.25rem; font-weight: 700; line-height: 1.2; margin-bottom: 1.5rem; }
+        .article h2 { font-size: 1.5rem; font-weight: 600; margin-top: 2.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--color-border); }
+        .article h3 { font-size: 1.25rem; font-weight: 600; margin-top: 2rem; margin-bottom: 0.75rem; }
+        .article h4, .article h5, .article h6 { font-size: 1.125rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+        .article p { margin-bottom: 1rem; }
+        .article a { color: var(--color-primary); text-decoration: none; }
+        .article a:hover { text-decoration: underline; }
+        .article a.external::after { content: ""; display: inline-block; width: 12px; height: 12px; margin-left: 4px; background: currentColor; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14'/%3E%3C/svg%3E") no-repeat center; vertical-align: middle; }
+        .article h1 .anchor, .article h2 .anchor, .article h3 .anchor, .article h4 .anchor { opacity: 0; margin-left: 0.5rem; color: var(--color-text-light); text-decoration: none; }
+        .article h1:hover .anchor, .article h2:hover .anchor, .article h3:hover .anchor, .article h4:hover .anchor { opacity: 1; }
+        .article ul, .article ol { margin-bottom: 1rem; padding-left: 1.5rem; }
+        .article li { margin-bottom: 0.25rem; }
+        .article blockquote { margin: 1.5rem 0; padding: 1rem 1.5rem; border-left: 4px solid var(--color-primary); background: var(--color-bg-secondary); border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+        .article blockquote p:last-child { margin-bottom: 0; }
+        .article code { font-family: var(--font-mono); font-size: 0.875em; background: var(--color-bg-code); padding: 0.125rem 0.375rem; border-radius: var(--radius-sm); }
+        .article pre { margin: 1.5rem 0; padding: 1rem 1.25rem; background: var(--color-bg-code); border-radius: var(--radius-lg); overflow-x: auto; font-size: 0.875rem; line-height: 1.6; }
+        .article pre code { background: none; padding: 0; font-size: inherit; }
+        .article table { width: 100%; margin: 1.5rem 0; border-collapse: collapse; font-size: 0.9375rem; }
+        .article th, .article td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--color-border); }
+        .article th { font-weight: 600; background: var(--color-bg-secondary); }
+        .article img { max-width: 100%; height: auto; border-radius: var(--radius-md); margin: 1rem 0; }
+        .article hr { border: none; border-top: 1px solid var(--color-border); margin: 2rem 0; }
+        .article .admonition { margin: 1.5rem 0; padding: 1rem 1.25rem; border-radius: var(--radius-md); border-left: 4px solid; }
+        .article .admonition-title { font-weight: 600; margin-bottom: 0.5rem; }
+        .article .admonition.note { background: rgba(37,99,235,0.05); border-color: var(--color-primary); }
+        .article .admonition.warning { background: rgba(234,179,8,0.1); border-color: #eab308; }
+        .article .admonition.danger { background: rgba(239,68,68,0.1); border-color: #ef4444; }
+        .article .admonition.tip { background: rgba(34,197,94,0.1); border-color: #22c55e; }
+        .pagination { display: flex; justify-content: space-between; gap: 1rem; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--color-border); }
+        .pagination a { display: flex; flex-direction: column; padding: 1rem 1.25rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); text-decoration: none; color: var(--color-text); max-width: 45%; }
+        .pagination a:hover { border-color: var(--color-primary); background: var(--color-bg-secondary); }
+        .pagination a .label { font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.25rem; }
+        .pagination a .title { font-weight: 500; color: var(--color-primary); }
+        .pagination .next { text-align: right; margin-left: auto; }
+        .toc { position: fixed; top: calc(var(--header-height) + 2rem); right: 2rem; width: 220px; max-height: calc(100vh - var(--header-height) - 4rem); overflow-y: auto; font-size: 0.8125rem; }
+        .toc-title { font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-light); margin-bottom: 0.75rem; }
+        .toc ul { list-style: none; }
+        .toc a { display: block; padding: 0.25rem 0; color: var(--color-text-muted); text-decoration: none; line-height: 1.4; }
+        .toc a:hover { color: var(--color-text); }
+        .toc .level-3 { padding-left: 0.75rem; }
+        .toc .level-4 { padding-left: 1.5rem; }
+        .footer { margin-top: auto; padding: 2rem 3rem; border-top: 1px solid var(--color-border); font-size: 0.875rem; color: var(--color-text-muted); }
+        .footer-content { max-width: var(--content-max-width); margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .footer-links { display: flex; gap: 1.5rem; }
+        .footer-links a { color: var(--color-text-muted); text-decoration: none; }
+        .footer-links a:hover { color: var(--color-text); }
+        .search-results { position: absolute; top: 100%; left: 0; right: 0; margin-top: 0.5rem; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-md); max-height: 400px; overflow-y: auto; display: none; }
+        .search-results.active { display: block; }
+        .search-result { padding: 0.75rem 1rem; border-bottom: 1px solid var(--color-border-light); }
+        .search-result:last-child { border-bottom: none; }
+        .search-result a { text-decoration: none; color: var(--color-text); }
+        .search-result-title { font-weight: 500; margin-bottom: 0.25rem; color: var(--color-primary); }
+        .search-result-snippet { font-size: 0.8125rem; color: var(--color-text-muted); line-height: 1.4; }
+        .search-no-results { padding: 1rem; text-align: center; color: var(--color-text-muted); }
+        {{ syntax_css | safe }}
+        @media (max-width: 1280px) { .toc { display: none; } }
+        @media (max-width: 900px) { .sidebar { transform: translateX(-100%); transition: transform 0.2s; } .sidebar.open { transform: translateX(0); } .main { margin-left: 0; } .mobile-menu-toggle { display: block; margin-right: 1rem; } .content { padding: 1.5rem; } .header-search { width: 200px; } }
+        @media (max-width: 600px) { .header-search { display: none; } .article h1 { font-size: 1.75rem; } .pagination { flex-direction: column; } .pagination a { max-width: 100%; } }
+        {{ config.extra_css | safe }}
+    </style>
+</head>
+<body>
+    <header class="header">
+        <button class="mobile-menu-toggle" onclick="toggleSidebar()" aria-label="Toggle menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        </button>
+        <a href="{{ request.url.path.rsplit('/', 1)[0] or '/' }}" class="header-logo">
+            {% if config.logo_url %}<img src="{{ config.logo_url }}" alt="{{ config.title }}">{% endif %}
+            <span>{{ config.title }}</span>
+        </a>
+        {% if config.enable_search %}
+        <div class="header-search">
+            <input type="text" id="search-input" placeholder="Search documentation..." autocomplete="off">
+            <div class="search-results" id="search-results"></div>
+        </div>
+        {% endif %}
+    </header>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                {% for item in nav %}
+                    {% if item.children %}
+                        <span class="section-title">{{ item.title }}</span>
+                        <ul>{% for child in item.children %}<li><a href="{{ child.path }}" {% if child.path == current_path %}class="active"{% endif %}>{{ child.title }}</a></li>{% endfor %}</ul>
+                    {% else %}
+                        <ul><li><a href="{{ item.path }}" {% if item.path == current_path %}class="active"{% endif %}>{{ item.title }}</a></li></ul>
+                    {% endif %}
+                {% endfor %}
+            </nav>
+        </aside>
+        <main class="main">
+            <div class="content">
+                {% if breadcrumbs and breadcrumbs | length > 1 %}
+                <nav class="breadcrumbs">{% for crumb in breadcrumbs %}{% if not loop.last %}<a href="{{ crumb.path }}">{{ crumb.title }}</a><span>/</span>{% else %}<span>{{ crumb.title }}</span>{% endif %}{% endfor %}</nav>
+                {% endif %}
+                <article class="article">{{ content | safe }}</article>
+                {% if prev_doc or next_doc %}
+                <nav class="pagination">
+                    {% if prev_doc %}<a href="{{ prev_doc.path }}" class="prev"><span class="label">← Previous</span><span class="title">{{ prev_doc.metadata.title }}</span></a>{% endif %}
+                    {% if next_doc %}<a href="{{ next_doc.path }}" class="next"><span class="label">Next →</span><span class="title">{{ next_doc.metadata.title }}</span></a>{% endif %}
+                </nav>
+                {% endif %}
+            </div>
+            <footer class="footer">
+                <div class="footer-content">
+                    <div class="footer-copyright">{% if config.copyright_text %}{{ config.copyright_text }}{% endif %}</div>
+                    {% if config.footer_links %}<div class="footer-links">{% for text, url in config.footer_links %}<a href="{{ url }}">{{ text }}</a>{% endfor %}</div>{% endif %}
+                </div>
+            </footer>
+        </main>
+        {% if toc and toc | length > 1 %}
+        <aside class="toc"><div class="toc-title">On this page</div><ul>{% for entry in toc %}<li class="level-{{ entry.level }}"><a href="#{{ entry.slug }}">{{ entry.text }}</a></li>{% endfor %}</ul></aside>
+        {% endif %}
+    </div>
+    <script>
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+        document.addEventListener('click', function(e) { const sidebar = document.getElementById('sidebar'); const toggle = document.querySelector('.mobile-menu-toggle'); if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && !toggle.contains(e.target)) sidebar.classList.remove('open'); });
+        {% if config.enable_search %}
+        (function() {
+            const searchInput = document.getElementById('search-input'), searchResults = document.getElementById('search-results');
+            let debounceTimer;
+            searchInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                const query = this.value.trim();
+                if (query.length < 2) { searchResults.classList.remove('active'); return; }
+                debounceTimer = setTimeout(async function() {
+                    try {
+                        const response = await fetch('_search?q=' + encodeURIComponent(query));
+                        const results = await response.json();
+                        searchResults.innerHTML = results.length === 0 ? '<div class="search-no-results">No results found</div>' : results.map(r => '<div class="search-result"><a href="' + r.path + '"><div class="search-result-title">' + r.title + '</div><div class="search-result-snippet">' + r.snippet + '</div></a></div>').join('');
+                        searchResults.classList.add('active');
+                    } catch (err) { console.error('Search error:', err); }
+                }, 200);
+            });
+            document.addEventListener('click', function(e) { if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) searchResults.classList.remove('active'); });
+            searchInput.addEventListener('keydown', function(e) { if (e.key === 'Escape') { searchResults.classList.remove('active'); this.blur(); } });
+        })();
+        {% endif %}
+        {{ config.extra_js | safe }}
+    </script>
+</body>
+</html>
