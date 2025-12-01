@@ -1,4 +1,5 @@
-"""DocRenderer: Markdown to HTML conversion with syntax highlighting."""
+"""DocRenderer: Markdown to HTML conversion with syntax highlighting.
+"""
 
 import re
 # from typing import Optional
@@ -42,7 +43,7 @@ class DocRenderer:
         )
         extensions = [
             "fenced_code", codehilite, "tables", toc, "admonition",
-            "md_in_html", "sane_lists", "smarty",
+            "md_in_html", "sane_lists", "smarty", "pymdownx.snippets"
         ]
         # Try to enable linkify if available
         try:

@@ -1,4 +1,5 @@
-"""Simple full-text search for documentation."""
+"""Simple full-text search for documentation.
+"""
 
 import re
 from dataclasses import dataclass, field

@@ -1,4 +1,5 @@
-"""Pydantic models for the documentation system."""
+"""Pydantic models for the documentation system.
+"""
 
 from pathlib import Path
 from typing import Optional

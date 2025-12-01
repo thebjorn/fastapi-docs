@@ -1,4 +1,5 @@
-"""Configuration for the documentation system."""
+"""Configuration for the documentation system.
+"""
 
 from dataclasses import dataclass, field
 from pathlib import Path

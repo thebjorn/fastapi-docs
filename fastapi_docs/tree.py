@@ -1,4 +1,5 @@
-"""DocTree: Directory scanner and navigation structure builder."""
+"""DocTree: Directory scanner and navigation structure builder.
+"""
 
 import re
 import time

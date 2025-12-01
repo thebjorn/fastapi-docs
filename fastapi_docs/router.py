@@ -1,4 +1,5 @@
-"""FastAPI router for serving documentation."""
+"""FastAPI router for serving documentation.
+"""
 
 from pathlib import Path
 from typing import Optional, Union
