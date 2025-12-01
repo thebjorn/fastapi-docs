@@ -1,5 +1,5 @@
 ![CI](https://github.com/thebjorn/fastapi-docs/actions/workflows/ci.yml/badge.svg)
-[![codecov](https://codecov.io/gh/thebjorn/fastapi-docs/graph/badge.svg?token=5PQOZLTSYD)](https://codecov.io/gh/thebjorn/fastapi-docs)
+[![codecov](https://codecov.io/github/thebjorn/fastapi-docs/graph/badge.svg?token=KSAWS3CH7A)](https://codecov.io/github/thebjorn/fastapi-docs)
 [![pypi](https://img.shields.io/pypi/v/fastapi-docs?label=pypi%20fastapi-docs)](https://pypi.org/project/fastapi-docs/)
 [![downloads](https://pepy.tech/badge/fastapi-docs)](https://pepy.tech/project/fastapi-docs)
 [![Socket Badge](https://socket.dev/api/badge/pypi/package/fastapi-docs/0.1.7?artifact_id=tar-gz)](https://socket.dev/pypi/package/fastapi-docs/overview/0.1.7/tar-gz)
