@@ -2,7 +2,7 @@ name: fastapi_docs CI/CD
 on: [ push, pull_request, workflow_dispatch ]
 
 env:
-  HOME_REPO: thebjorn/fastapi_docs
+  HOME_REPO: thebjorn/fastapi-docs
 
 jobs:
   lint:
