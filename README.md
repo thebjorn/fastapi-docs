@@ -1,3 +1,9 @@
+![CI](https://github.com/thebjorn/fastapi-docs/actions/workflows/ci.yml/badge.svg)
+[![codecov](https://codecov.io/gh/thebjorn/fastapi-docs/graph/badge.svg?token=5PQOZLTSYD)](https://codecov.io/gh/thebjorn/fastapi-docs)
+[![pypi](https://img.shields.io/pypi/v/fastapi-docs?label=pypi%20fastapi-docs)](https://pypi.org/project/fastapi-docs/)
+[![downloads](https://pepy.tech/badge/fastapi-docs)](https://pepy.tech/project/fastapi-docs)
+[![Socket Badge](https://socket.dev/api/badge/pypi/package/fastapi-docs/0.1.7?artifact_id=tar-gz)](https://socket.dev/pypi/package/fastapi-docs/overview/0.1.7/tar-gz)
+
 # fastapi-docs
 
 A markdown documentation renderer for FastAPI applications.
@@ -28,15 +34,15 @@ from fastapi_docs import create_docs_router, DocsConfig
 app = FastAPI()
 
 # Simple usage
-app.include_router(create_docs_router("./docs"), prefix="/docs")
+app.include_router(create_docs_router("./userdocs"), prefix="/userdocs")
 
 # Or with configuration
 config = DocsConfig(
-    docs_dir="./docs",
+    docs_dir="./userdocs",
     title="My API Docs",
     auto_refresh=True,
 )
-app.include_router(create_docs_router(config), prefix="/docs")
+app.include_router(create_docs_router(config), prefix="/userdocs")
 ```
 
 ## Markdown Frontmatter
@@ -65,7 +71,7 @@ pip install -e ".[dev]"
 uvicorn example_app:app --reload
 ```
 
-Then visit http://localhost:8000/docs/
+Then visit http://localhost:8000/userdocs
 
 ## License
 

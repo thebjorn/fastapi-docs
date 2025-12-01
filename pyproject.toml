@@ -10,7 +10,7 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [
-    { name = "Your Name", email = "you@example.com" }
+    { name = "Bjorn Johansen", email = "bp@datakortet.no" }
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -44,9 +44,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/fastapi-docs"
-Documentation = "https://github.com/yourusername/fastapi-docs#readme"
-Repository = "https://github.com/yourusername/fastapi-docs"
+Homepage = "https://github.com/thebjorn/fastapi-docs"
+Documentation = "https://github.com/thebjorn/fastapi-docs#readme"
+Repository = "https://github.com/thebjorn/fastapi-docs"
 
 [tool.hatch.build.targets.wheel]
 packages = ["fastapi_docs"]
