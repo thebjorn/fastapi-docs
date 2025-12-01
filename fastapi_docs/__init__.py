@@ -27,4 +27,4 @@ __all__ = [
     "TocEntry",
 ]
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
