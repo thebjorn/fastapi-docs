@@ -50,12 +50,11 @@ jobs:
         run: |
           pytest -vv --cov=fastapi_docs --cov-report=xml tests/
 
-      # - name: Upload coverage reports to Codecov
-      #   uses: codecov/codecov-action@v5
-      #   with:
-      #     token: ${{ secrets.CODECOV_TOKEN }}
-      #     slug: thebjorn/fastapi-docs
-      #     fail_ci_if_error: false
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: thebjorn/fastapi-docs
 
   # build-docs:
   #   name: Build docs and deploy to gh-pages
