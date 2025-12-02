@@ -48,15 +48,16 @@ More content.
 """)
 
         # Table of contents extracted from headings
-        # assert len(result.toc) == 3
-        assert len(result.toc) == 2
-        print("RESULT:TOC:", result.toc)
+        assert len(result.toc) == 3
         assert result.toc[0].text == "Main Title"
         assert result.toc[0].level == 1
         assert result.toc[0].slug == "main-title"
 
         assert result.toc[1].text == "Section One"
         assert result.toc[1].level == 2
+
+        assert result.toc[2].text == "Section Two"
+        assert result.toc[2].level == 2
 
     def test_render_with_frontmatter_stripped(self):
         """
@@ -306,3 +307,261 @@ class TestLinkHandling:
         # Heading should have an ID for anchoring
         assert ('id="my-section"' in result.html
                 or 'id="my_section"' in result.html)
+
+
+class TestTableOfContents:
+    """Test table of contents extraction and generation.
+    """
+
+    def test_toc_includes_all_heading_levels(self):
+        """
+        TOC should include all heading levels from H1 to H6.
+        """
+        renderer = DocRenderer()
+
+        markdown_content = """
+# Level 1 Heading
+
+## Level 2 Heading
+
+### Level 3 Heading
+
+#### Level 4 Heading
+
+##### Level 5 Heading
+
+###### Level 6 Heading
+
+Some content here.
+"""
+
+        result = renderer.render(markdown_content)
+
+        # Verify all 6 heading levels are in TOC
+        assert len(result.toc) == 6
+        assert result.toc[0].level == 1
+        assert result.toc[0].text == "Level 1 Heading"
+        assert result.toc[1].level == 2
+        assert result.toc[1].text == "Level 2 Heading"
+        assert result.toc[2].level == 3
+        assert result.toc[2].text == "Level 3 Heading"
+        assert result.toc[3].level == 4
+        assert result.toc[3].text == "Level 4 Heading"
+        assert result.toc[4].level == 5
+        assert result.toc[4].text == "Level 5 Heading"
+        assert result.toc[5].level == 6
+        assert result.toc[5].text == "Level 6 Heading"
+
+    def test_toc_with_nested_headings(self):
+        """
+        TOC should correctly handle nested heading hierarchies.
+        """
+        renderer = DocRenderer()
+
+        markdown_content = """
+# Main Title
+
+## Section A
+
+### Subsection A.1
+
+#### Sub-subsection A.1.1
+
+### Subsection A.2
+
+## Section B
+
+### Subsection B.1
+
+## Section C
+"""
+
+        result = renderer.render(markdown_content)
+
+        # Verify all headings are included in order
+        assert len(result.toc) == 8
+        assert result.toc[0].text == "Main Title"
+        assert result.toc[0].level == 1
+        
+        assert result.toc[1].text == "Section A"
+        assert result.toc[1].level == 2
+        
+        assert result.toc[2].text == "Subsection A.1"
+        assert result.toc[2].level == 3
+        
+        assert result.toc[3].text == "Sub-subsection A.1.1"
+        assert result.toc[3].level == 4
+        
+        assert result.toc[4].text == "Subsection A.2"
+        assert result.toc[4].level == 3
+        
+        assert result.toc[5].text == "Section B"
+        assert result.toc[5].level == 2
+        
+        assert result.toc[6].text == "Subsection B.1"
+        assert result.toc[6].level == 3
+        
+        assert result.toc[7].text == "Section C"
+        assert result.toc[7].level == 2
+
+    def test_toc_slug_generation(self):
+        """
+        TOC entries should have correctly generated slugs for anchor links.
+        """
+        renderer = DocRenderer()
+
+        markdown_content = """
+# Simple Heading
+
+## Heading With Spaces
+
+### Heading-With-Dashes
+
+#### Heading_With_Underscores
+
+##### Heading With Special Characters! @#$%
+
+###### Multi   Word    Heading
+"""
+
+        result = renderer.render(markdown_content)
+
+        assert len(result.toc) == 6
+        
+        # Verify slugs are generated correctly
+        assert result.toc[0].slug == "simple-heading"
+        assert result.toc[1].slug == "heading-with-spaces"
+        assert result.toc[2].slug == "heading-with-dashes"
+        assert result.toc[3].slug == "heading-with-underscores"
+        # Special characters should be removed from slugs
+        assert "@" not in result.toc[4].slug
+        assert "#" not in result.toc[4].slug
+        assert "$" not in result.toc[4].slug
+        assert "%" not in result.toc[4].slug
+        # Multiple spaces should be collapsed
+        assert "  " not in result.toc[5].slug
+
+    def test_toc_with_multiple_same_level_headings(self):
+        """
+        TOC should include all headings even when multiple exist at the same level.
+        """
+        renderer = DocRenderer()
+
+        markdown_content = """
+# First H1
+
+# Second H1
+
+## First H2
+
+## Second H2
+
+## Third H2
+
+### First H3
+
+### Second H3
+"""
+
+        result = renderer.render(markdown_content)
+
+        # Verify all headings are included
+        assert len(result.toc) == 7
+        assert result.toc[0].text == "First H1"
+        assert result.toc[1].text == "Second H1"
+        assert result.toc[2].text == "First H2"
+        assert result.toc[3].text == "Second H2"
+        assert result.toc[4].text == "Third H2"
+        assert result.toc[5].text == "First H3"
+        assert result.toc[6].text == "Second H3"
+
+    def test_toc_with_no_headings(self):
+        """
+        TOC should be empty when document has no headings.
+        """
+        renderer = DocRenderer()
+
+        markdown_content = """
+This is just a paragraph with no headings.
+
+Another paragraph here.
+"""
+
+        result = renderer.render(markdown_content)
+
+        assert len(result.toc) == 0
+        assert result.toc == []
+
+    def test_toc_with_only_h1(self):
+        """
+        TOC should work correctly with only a single H1 heading.
+        """
+        renderer = DocRenderer()
+
+        markdown_content = """
+# Only Heading
+
+Some content here.
+"""
+
+        result = renderer.render(markdown_content)
+
+        assert len(result.toc) == 1
+        assert result.toc[0].text == "Only Heading"
+        assert result.toc[0].level == 1
+        assert result.toc[0].slug == "only-heading"
+
+    def test_toc_preserves_heading_order(self):
+        """
+        TOC entries should be in the same order as headings appear in the document.
+        """
+        renderer = DocRenderer()
+
+        markdown_content = """
+# Alpha
+
+## Beta
+
+### Gamma
+
+## Delta
+
+# Epsilon
+
+## Zeta
+"""
+
+        result = renderer.render(markdown_content)
+
+        # Verify order matches document order
+        assert len(result.toc) == 6
+        assert result.toc[0].text == "Alpha"
+        assert result.toc[1].text == "Beta"
+        assert result.toc[2].text == "Gamma"
+        assert result.toc[3].text == "Delta"
+        assert result.toc[4].text == "Epsilon"
+        assert result.toc[5].text == "Zeta"
+
+    def test_toc_with_headings_in_code_blocks(self):
+        """
+        Headings inside code blocks should not be included in TOC.
+        """
+        renderer = DocRenderer()
+
+        markdown_content = """
+# Real Heading
+
+```markdown
+# This is not a heading
+## Neither is this
+```
+
+## Another Real Heading
+"""
+
+        result = renderer.render(markdown_content)
+
+        # Only real headings should be in TOC
+        assert len(result.toc) == 2
+        assert result.toc[0].text == "Real Heading"
+        assert result.toc[1].text == "Another Real Heading"

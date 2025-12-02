@@ -39,7 +39,7 @@ class DocRenderer:
             permalink_class="anchor",
             permalink_title="Link to this section",
             slugify=self._slugify,
-            toc_depth="2-4",
+            toc_depth="1-6",
         )
         extensions = [
             "fenced_code", codehilite, "tables", toc, "admonition",
@@ -75,31 +75,16 @@ class DocRenderer:
 
     def _extract_reduced_toc(self, source_markdown: str) -> list[TocEntry]:
         """
-        Build a compact TOC containing only the first H1 (from source),
-        and the first H2 (from markdown's toc_tokens).
+        Build a TOC containing all headings from the markdown document.
         """
         entries: list[TocEntry] = []
-        # Extract H1 from the markdown source
-        m = re.search(r"^#\s+(.+)$", source_markdown, flags=re.MULTILINE)
-        if m:
-            h1_text = m.group(1).strip()
-            entries.append(TocEntry(
-                text=h1_text, level=1, slug=self._slugify(h1_text)
-            ))
-        # Find first H2 from toc_tokens
+        # Get all TOC tokens from the markdown processor
         tokens = getattr(self._md, "toc_tokens", None) or []
-        first_h2 = None
-        for t in tokens:
-            if t.get("level") == 2:
-                first_h2 = t
-                break
-        if first_h2 is None and tokens:
-            # Sometimes toc_depth excludes H1; tokens[0] may be an H2
-            first_h2 = tokens[0]
-        if first_h2 is not None and first_h2.get("level", 2) >= 2:
-            entries.append(TocEntry(text=first_h2.get("name", ""),
-                                    level=first_h2.get("level", 2),
-                                    slug=first_h2.get("id", "")))
+        
+        # Flatten all tokens recursively to get all headings
+        for token in tokens:
+            entries.extend(self._flatten_toc_token(token))
+        
         return entries
 
     def _flatten_toc_token(self,
