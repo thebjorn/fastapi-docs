@@ -80,11 +80,11 @@ class DocRenderer:
         entries: list[TocEntry] = []
         # Get all TOC tokens from the markdown processor
         tokens = getattr(self._md, "toc_tokens", None) or []
-        
+
         # Flatten all tokens recursively to get all headings
         for token in tokens:
             entries.extend(self._flatten_toc_token(token))
-        
+
         return entries
 
     def _flatten_toc_token(self,
