@@ -382,25 +382,25 @@ Some content here.
         assert len(result.toc) == 8
         assert result.toc[0].text == "Main Title"
         assert result.toc[0].level == 1
-        
+
         assert result.toc[1].text == "Section A"
         assert result.toc[1].level == 2
-        
+
         assert result.toc[2].text == "Subsection A.1"
         assert result.toc[2].level == 3
-        
+
         assert result.toc[3].text == "Sub-subsection A.1.1"
         assert result.toc[3].level == 4
-        
+
         assert result.toc[4].text == "Subsection A.2"
         assert result.toc[4].level == 3
-        
+
         assert result.toc[5].text == "Section B"
         assert result.toc[5].level == 2
-        
+
         assert result.toc[6].text == "Subsection B.1"
         assert result.toc[6].level == 3
-        
+
         assert result.toc[7].text == "Section C"
         assert result.toc[7].level == 2
 
@@ -427,7 +427,7 @@ Some content here.
         result = renderer.render(markdown_content)
 
         assert len(result.toc) == 6
-        
+
         # Verify slugs are generated correctly
         assert result.toc[0].slug == "simple-heading"
         assert result.toc[1].slug == "heading-with-spaces"
@@ -443,7 +443,8 @@ Some content here.
 
     def test_toc_with_multiple_same_level_headings(self):
         """
-        TOC should include all headings even when multiple exist at the same level.
+        TOC should include all headings when multiple exist at the
+        same level.
         """
         renderer = DocRenderer()
 
@@ -513,7 +514,8 @@ Some content here.
 
     def test_toc_preserves_heading_order(self):
         """
-        TOC entries should be in the same order as headings appear in the document.
+        TOC entries should be in the same order as headings appear
+        in the document.
         """
         renderer = DocRenderer()
 
