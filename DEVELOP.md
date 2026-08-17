@@ -15,6 +15,11 @@ dk testpackage
 
 This command will create the virtualenv and install all necessary dependencies, and run initial tests to verify the setup.
 
+Runtime dependencies are declared once in `pyproject.toml`. The small
+`requirements.txt` file contains only the test-runner bootstrap needed by the
+package harness; a complete editable development install uses
+`pip install -e ".[dev]"`.
+
 Indiviual tools installed in the virtualenv can be ran (without activiating the virtualenv), by specifying the full path to the tool, e.g. `/srv/venv/fastapi_docs311/Scripts/pytest` to run pytest.
 
 ## Running Tests
@@ -44,7 +49,9 @@ Follow the instructions in STYLEGUIDE.md for coding standards and best practices
 
 ## Test coverage
 Write tests for all new features and bug fixes.
-Aim for high test coverage and use coverage reports to identify untested code paths.
+The package enforces at least 83% combined statement and branch coverage. Use
+coverage reports to identify meaningful untested behavior rather than
+excluding authored source.
 
 # Documentation
 Maintain up-to-date documentation for all public APIs and modules.

@@ -1,0 +1,9 @@
+[run]
+branch = True
+
+[report]
+fail_under = 83
+precision = 2
+
+[html]
+title = fastapi_docs coverage
